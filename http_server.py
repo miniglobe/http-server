@@ -4,6 +4,7 @@ import configparser
 import os
 import datetime
 import time
+from mod import file_mod
 
 class HttpServer(object):
 
@@ -14,24 +15,33 @@ class HttpServer(object):
             data = self.rfile.readline().strip()
             path = data.decode('utf-8').split(' ')[1]
             if not self._is_address(path):
-                self._check_file_exists(path)
+                if file_mod.check_exists(self.documentroot, path):
+                    self._add_header("200")
+                    file_mod.write(self.wfile, self.documentroot, path)
+                else:
+                    self._add_header("404")
 
 
         def _is_address(self, path):
 
             if path == '/':
-                self._add_header()
+                self._add_header("200")
                 self._display_body()
                 return True
             else:
                 return False
 
 
-        def _add_header(self):
+        def _add_header(self, status):
 
             t = time.strftime('%a, %d %b %Y %X')
             t = str(t)
-            self.wfile.write(b'HTTP/1.1 200 ok')
+            if status == "200":
+                self.wfile.write(b'HTTP/1.1 200 OK')
+            if status == "404":
+                self.wfile.write(b'HTTP/1.1 404 Not Found')
+
+            self.wfile.write(b'HTTP/1.1')
             self.wfile.write(b'\n')
             self.wfile.write(b'Date: ' + t.encode('utf-8'))
             self.wfile.write(b'\n')
@@ -61,20 +71,6 @@ class HttpServer(object):
                     line = f.readline()
                     self.wfile.write(line.encode('utf-8'))
             return
-
-
-
-        def _check_file_exists(self, path):
-
-            if os.path.isfile(self.documentroot + path):
-                self.wfile.write(b'HTTP/1.1 200 OK')
-                self._add_header()
-                with open(self.documentroot + path) as f:
-                    for line in f:
-                        line = f.readline()
-                        self.wfile.write(line.encode('utf-8'))
-            else:
-                self.wfile.write(b'HTTP/1.1 404 Not Found')
 
 
     def __init__(self, documentroot, host, port):
