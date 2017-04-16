@@ -1,6 +1,7 @@
 import socketserver
 import time
-from mod import file_mod
+from http_request.file_exist_checker import check_exists
+from http_response.file_reader import read
 
 class MyRequestHandler(socketserver.StreamRequestHandler):
 
@@ -9,9 +10,9 @@ class MyRequestHandler(socketserver.StreamRequestHandler):
         method = data.decode('utf-8').split(' ')[0]
         path = data.decode('utf-8').split(' ')[1]
         if not self._is_address(path):
-            if file_mod.check_exists(self.documentroot, path):
+            if check_exists(self.documentroot, path):
                 self._add_header("200")
-                file_mod.write(self.wfile, self.documentroot, path)
+                read(self.wfile, self.documentroot, path)
             else:
                 self._add_header("404")
 
@@ -20,7 +21,7 @@ class MyRequestHandler(socketserver.StreamRequestHandler):
 
         if path == '/':
             self._add_header("200")
-            file_mod.write(self.wfile, self.documentroot, '/index.html')
+            read(self.wfile, self.documentroot, '/index.html')
             return True
         else:
             return False
