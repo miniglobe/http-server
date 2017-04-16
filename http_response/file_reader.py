@@ -1,4 +1,4 @@
-def read(wfile, documentroot, path):
+def read(documentroot, wfile, path):
 
     with open(documentroot + path) as f:
         for line in f:
