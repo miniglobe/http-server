@@ -13,6 +13,7 @@ class HttpServer(object):
 
         def handle(self):
             data = self.rfile.readline().strip()
+            method = data.decode('utf-8').split(' ')[0]
             path = data.decode('utf-8').split(' ')[1]
             if not self._is_address(path):
                 if file_mod.check_exists(self.documentroot, path):
@@ -26,7 +27,7 @@ class HttpServer(object):
 
             if path == '/':
                 self._add_header("200")
-                self._display_body()
+                file_mod.write(self.wfile, self.documentroot, '/index.html')
                 return True
             else:
                 return False
@@ -62,15 +63,6 @@ class HttpServer(object):
             self.wfile.write(b'Content-Type: text/html')
             self.wfile.write(b'\n')
             self.wfile.write(b'\n')
-
-
-        def _display_body(self):
-
-            with open(self.documentroot + '/index.html') as f:
-                for line in f:
-                    line = f.readline()
-                    self.wfile.write(line.encode('utf-8'))
-            return
 
 
     def __init__(self, documentroot, host, port):
